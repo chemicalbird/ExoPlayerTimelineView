@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"/>
+
+    <com.video.timeline.TimelineGlSurfaceView
+        android:id="@+id/fixed_thumb_list"
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"/>
+
+    <com.video.timeline.ScrollableTimelineGlView
+        android:id="@+id/thumb_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="bottom"
+        android:paddingBottom="12dp"
+        android:orientation="horizontal">
+
+    <Button
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:id="@+id/show_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show List"/>
+
+    <Button
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:id="@+id/show_fixed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show Fixed"/>
+
+    </LinearLayout>
+
+</LinearLayout>
