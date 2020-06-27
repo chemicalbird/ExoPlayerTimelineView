@@ -28,7 +28,7 @@ dependencies {
         android:layout_marginTop="22dp"/>
 ```
 
-1. To create the frame generator pass video **uri** and set an
+2. To create the frame generator pass video **uri** and set an
    implementation of the image(frame) loader (Picasso, Glide, ..whatever
    you are using in your project)
 ```sh
@@ -43,5 +43,5 @@ RecyclerView recyclerView = scrollableTimelineGlView.getRecyclerView();
 // get underlying RecyclerView to do your own UI customizations
 ```
 
-1. To show the timeline view call ```videoTimeLine.start()```
+3. To show the timeline view call ```videoTimeLine.start()```
 
