@@ -23,6 +23,12 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VHolder> {
         this.sizeW = size;
     }
 
+    void setup(int count) {
+        while (count --> 0) {
+            data.add("");
+        }
+    }
+
     @NonNull
     @Override
     public VHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -45,6 +51,13 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VHolder> {
     @Override
     public int getItemCount() {
         return data.size();
+    }
+
+    void setPath(String path, int index) {
+        if (index < data.size()) {
+            data.set(index, path);
+            notifyItemChanged(index);
+        }
     }
 
     void addPath(String filePath) {

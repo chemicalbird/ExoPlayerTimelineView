@@ -7,9 +7,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.URLUtil;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -55,18 +58,32 @@ public class NewActivity extends AppCompatActivity implements View.OnClickListen
         ScrollableTimelineGlView scrollableTimelineGlView = findViewById(R.id.thumb_list);
         videoTimeLine = VideoTimeLine.with(fileUri)
                 .setImageLoader(picassoLoader)
-                .setFrameDuration(1)
+                .setFrameDuration(2)
                 .setFrameSizeDp(50)
+                .setSeekParams(SeekParameters.CLOSEST_SYNC)
                 .into(scrollableTimelineGlView);
 
-        scrollableTimelineGlView.getRecyclerView().setClipToPadding(false);
-        scrollableTimelineGlView.getRecyclerView().
-                setPadding(Android.dpToPx(this, 160), 0, Android.dpToPx(this, 160), 0);
+        RecyclerView rv = scrollableTimelineGlView.getRecyclerView();
+
+        rv.setClipToPadding(false);
+        rv.setPadding(Android.dpToPx(this, 160), 0, Android.dpToPx(this, 160), 0);
+        rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    long seekPos = (long) (rv.computeHorizontalScrollOffset() * 1F / rv.computeHorizontalScrollRange()
+                            * player.getDuration());
+                    player.seekTo(seekPos);
+                }
+            }
+        });
 
 
         TimelineGlSurfaceView glSurfaceView = findViewById(R.id.fixed_thumb_list);
         fixedVideoTimeline = VideoTimeLine.with(fileUri)
                 .into(glSurfaceView);
+
+        playerView.getVideoSurfaceView().setOnClickListener(v -> player.setPlayWhenReady(!player.getPlayWhenReady()));
     }
 
 

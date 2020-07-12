@@ -19,6 +19,8 @@ import static android.opengl.GLES20.GL_FRAMEBUFFER;
 
 public class GlRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
 
+    private static final long TIMEOUT = 1000;
+
     private TextureProgram sceneProgram;
     private GlDrawable drawable;
     private SurfaceTexture surfaceTexture;
@@ -31,11 +33,13 @@ public class GlRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
     private float[] VMatrix = new float[16];
 
     private int pendingIndex;
-    private int frameCount = 8;
+    private int frameCount;
 
     private boolean cleanScene = true;
     private boolean startRendering;
     private FBOHandler fboHandler;
+
+    private final Object countAvailableLock = new Object();
 
     GlRenderer(SurfaceEventListener surfaceEventListener) {
         this.surfaceEventListener = surfaceEventListener;
@@ -129,19 +133,39 @@ public class GlRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
     }
 
     void onAspectPrepared(float videoAspect) {
-        frameCount = (int) Math.ceil(width*1f / height);
+        synchronized (countAvailableLock) {
+            frameCount = (int) Math.ceil(width * 1f / height);
 
-        if (videoAspect > 1) {
-            Matrix.orthoM(PMatrix, 0, -1 / videoAspect, 1 / videoAspect, -1, 1, -1, 1);
-        } else {
-            Matrix.orthoM(PMatrix, 0, -1, 1, -videoAspect, videoAspect, -1, 1);
+            if (videoAspect > 1) {
+                Matrix.orthoM(PMatrix, 0, -1 / videoAspect, 1 / videoAspect, -1, 1, -1, 1);
+            } else {
+                Matrix.orthoM(PMatrix, 0, -1, 1, -videoAspect, videoAspect, -1, 1);
+            }
+            Matrix.multiplyMM(MVPMatrix, 0, PMatrix, 0, VMatrix, 0);
+
+            countAvailableLock.notifyAll();
         }
-        Matrix.multiplyMM(MVPMatrix, 0, PMatrix, 0, VMatrix, 0);
     }
 
+    private void waitForCount() {
+        synchronized (countAvailableLock) {
+            if (frameCount == 0) {
+                try {
+                    Loggy.d("Waiting for clue");
+                    countAvailableLock.wait(TIMEOUT);
+                    if (frameCount == 0) {
+                        Loggy.d("First frame could be damaged");
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+        waitForCount();
         if (surfaceEventListener != null) {
             if (pendingIndex < frameCount) {
                 surfaceEventListener.drawAndMoveToNext(pendingIndex, frameCount);

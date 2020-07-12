@@ -94,7 +94,7 @@ public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineView
     }
 
     @Override
-    public void onFrameAvailable(String filePath) {
+    public void onFrameAvailable(String filePath, int index) {
 
     }
 }

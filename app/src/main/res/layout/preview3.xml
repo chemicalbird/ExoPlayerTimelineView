@@ -2,48 +2,63 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/playerView"
         android:layout_width="match_parent"
-        android:layout_height="220dp"/>
+        android:layout_height="220dp"
+        app:use_controller="false"/>
 
     <com.video.timeline.TimelineGlSurfaceView
         android:id="@+id/fixed_thumb_list"
         android:layout_width="match_parent"
         android:layout_height="68dp"
-        android:layout_marginTop="12dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"/>
+        android:layout_marginTop="12dp"
+        android:layout_marginRight="8dp" />
 
-    <com.video.timeline.ScrollableTimelineGlView
-        android:id="@+id/thumb_list"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="22dp"/>
+        android:layout_height="wrap_content">
+
+        <com.video.timeline.ScrollableTimelineGlView
+            android:id="@+id/thumb_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp" />
+
+        <View
+            android:layout_width="3dp"
+            android:layout_height="0dp"
+            android:layout_alignTop="@id/thumb_list"
+            android:layout_alignBottom="@id/thumb_list"
+            android:layout_marginLeft="160dp"
+            android:background="@android:color/white" />
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="bottom"
-        android:paddingBottom="12dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingBottom="12dp">
 
-    <Button
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:id="@+id/show_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Show List"/>
+        <Button
+            android:id="@+id/show_list"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show List" />
 
-    <Button
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:id="@+id/show_fixed"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Show Fixed"/>
+        <Button
+            android:id="@+id/show_fixed"
+            style="@style/Widget.AppCompat.Button.Colored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show Fixed" />
 
     </LinearLayout>
 

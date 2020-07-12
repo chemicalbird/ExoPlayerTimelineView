@@ -29,8 +29,8 @@ public abstract class BaseGLRenderer implements Handler.Callback {
         drawHandler.obtainMessage(0).sendToTarget();
     }
 
-    void requestRender() {
-        drawHandler.obtainMessage(2).sendToTarget();
+    void requestRender(int itemIndex) {
+        drawHandler.obtainMessage(2, itemIndex).sendToTarget();
     }
 
     void makeCurrent() {
@@ -55,7 +55,7 @@ public abstract class BaseGLRenderer implements Handler.Callback {
                 break;
 
             case 2: // draw
-                drawFrame();
+                drawFrame((Integer) msg.obj);
                 break;
 
             case 3: // destroy
@@ -91,5 +91,5 @@ public abstract class BaseGLRenderer implements Handler.Callback {
 
     abstract EglSurface createEglSurface(EglCore egl);
     abstract void setupDrawingResources(EglCore egl);
-    abstract void drawFrame();
+    abstract void drawFrame(int itemId);
 }

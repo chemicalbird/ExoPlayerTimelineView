@@ -23,6 +23,7 @@ public class ScrollableTimelineGlView extends FrameLayout implements TimelineVie
 
     private SimpleExoPlayer player;
     private long lastSeekPos;
+    private long currentPos;
     private Handler mainHandler;
 
     private long videoDuration;
@@ -109,7 +110,8 @@ public class ScrollableTimelineGlView extends FrameLayout implements TimelineVie
     public void drawAndMoveToNext(int offset, int limit) {
         mainHandler.post(() -> {
             if (offset < limit) {
-                lastSeekPos = Math.max(frameDuration * (1+offset), player.getContentPosition() + frameDuration / 3);
+                currentPos = player.getCurrentPosition();
+                lastSeekPos = Math.max(frameDuration * (1+offset), currentPos + 1);
                 Loggy.d("Player seek: " + lastSeekPos);
                 player.seekTo(lastSeekPos);
             }
@@ -118,15 +120,18 @@ public class ScrollableTimelineGlView extends FrameLayout implements TimelineVie
 
     @Override
     public void onSeekProcessed() {
-//        if (lastSeekPos != 0 && player.getContentPosition() == lastSeekPos) {
-//            player.seekTo(lastSeekPos + 1);
-//        }
-//        lastSeekPos = 0;
+        if (lastSeekPos <= player.getDuration()) {
+            if (lastSeekPos != 0 && player.getCurrentPosition() == currentPos) {
+                Loggy.d("Player draw: " + lastSeekPos);
+                offscreenSurface.drawSameFrame();
+                player.seekTo(lastSeekPos += frameDuration / 3);
+            }
+        }
     }
 
     @Override
-    public void onFrameAvailable(String filePath) {
-        mainHandler.post(() -> imagesAdapter.addPath(filePath));
+    public void onFrameAvailable(String filePath, int frameIndex) {
+        mainHandler.post(() -> imagesAdapter.setPath(filePath, frameIndex));
     }
 
     public void calculateFrameCount() {
@@ -135,6 +140,7 @@ public class ScrollableTimelineGlView extends FrameLayout implements TimelineVie
         if (offscreenSurface != null) {
             offscreenSurface.setItemCount(frameCount);
         }
+        imagesAdapter.setup(frameCount);
     }
 
     @Override

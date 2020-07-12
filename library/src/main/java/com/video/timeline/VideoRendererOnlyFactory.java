@@ -13,6 +13,7 @@ import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.text.TextOutput;
+import com.google.android.exoplayer2.video.MediaCodecVideoRenderer;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 
 public class VideoRendererOnlyFactory extends DefaultRenderersFactory {
     private Context context;
+    private Renderer mediaCodecVideoRenderer;
 
     public VideoRendererOnlyFactory(Context context) {
         super(context);
@@ -38,7 +40,13 @@ public class VideoRendererOnlyFactory extends DefaultRenderersFactory {
         buildVideoRenderers(context, EXTENSION_RENDERER_MODE_OFF,
                 MediaCodecSelector.DEFAULT, drmSessionManager, false, false,
                 eventHandler,videoRendererEventListener, 1000, rendererList);
-
+        if (rendererList.get(0) instanceof MediaCodecVideoRenderer) {
+            mediaCodecVideoRenderer = rendererList.get(0);
+        }
         return rendererList.toArray(new Renderer[0]);
+    }
+
+    public Renderer getMediaCodecVideoRenderer() {
+        return mediaCodecVideoRenderer;
     }
 }

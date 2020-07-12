@@ -60,7 +60,7 @@ public class VideoTimeLine {
                     .setLoadControl(
                             new DefaultLoadControl.Builder()
                                     .setBufferDurationsMs(
-                                            500, 500, 500, 500)
+                                            100, 100, 100, 100)
                                     .createDefaultLoadControl()
                     )
                     .build();

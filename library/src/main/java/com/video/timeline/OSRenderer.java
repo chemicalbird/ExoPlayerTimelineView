@@ -15,7 +15,7 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
 
     private static final long TIMEOUT = 3000;
 
-    private float[] mvp;
+    private float[] mvp = new float[16];
     private float[] projection = new float[16];
     private float[] view = new float[16];
 
@@ -44,6 +44,7 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
                 0.0f, 1.0f, 0.0f
         );
         Matrix.setIdentityM(projection, 0);
+        Matrix.multiplyMM(mvp, 0, projection, 0, view, 0);
     }
 
     @Override
@@ -65,7 +66,8 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
     }
 
     @Override
-    void drawFrame() {
+    void drawFrame(int itemID) {
+        if (itemID < 0) return;
         surfaceTexture.updateTexImage();
         surfaceTexture.getTransformMatrix(fboHandler.getTextureTransform());
 
@@ -75,14 +77,14 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
 
         String file = saveFrame(mWidth, mHeight, "");
         if (!TextUtils.isEmpty(file)) {
-            eventListener.onFrameAvailable(file);
+            eventListener.onFrameAvailable(file, itemID);
         }
         fboHandler.unbind();
     }
 
     void onVideoAspectChanged(float videoAspect) {
         synchronized (countAvailableLock) {
-            mvp = new float[16];
+
             if (videoAspect > 1) {
                 Matrix.orthoM(projection, 0, -1 / videoAspect, 1 / videoAspect, -1, 1, -1, 1);
             } else {
@@ -107,11 +109,8 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
                 try {
                     Loggy.d("Waiting for clue");
                     countAvailableLock.wait(TIMEOUT);
-                    if (itemCount == 0) {
-                        throw new RuntimeException("Frame count not set or is zero");
-                    }
-                    if (mvp == null) {
-                        throw new RuntimeException("Video dimensions are not set");
+                    if (itemCount == 0 || mvp == null) {
+                        Loggy.d("Took too long");
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -126,11 +125,15 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
         Loggy.d("Frame available");
         waitForCount();
         if (pendingIndex < itemCount) {
-            requestRender();
+            requestRender(pendingIndex);
             eventListener.drawAndMoveToNext(pendingIndex++, itemCount);
         } else {
             surfaceTexture.setOnFrameAvailableListener(null);
         }
+    }
+
+    public void drawSameFrame() {
+        requestRender(pendingIndex++);
     }
 
     @Override
