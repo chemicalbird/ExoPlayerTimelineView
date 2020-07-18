@@ -1,38 +1,45 @@
-package com.video.timeline;
+package com.video.timeline.render;
 
 import android.graphics.SurfaceTexture;
+import android.opengl.GLES20;
 import android.opengl.Matrix;
-import android.text.TextUtils;
 import android.view.Surface;
 
 import com.otaliastudios.opengl.core.EglCore;
+import com.otaliastudios.opengl.core.Egloo;
 import com.otaliastudios.opengl.draw.GlRect;
 import com.otaliastudios.opengl.surface.EglOffscreenSurface;
 import com.otaliastudios.opengl.surface.EglSurface;
 import com.otaliastudios.opengl.texture.GlTexture;
+import com.video.timeline.tools.GlUtils;
+import com.video.timeline.tools.Loggy;
+import com.video.timeline.RetroSurfaceListener;
+import com.video.timeline.VideoFrameCache;
 
-public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrameAvailableListener {
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-    private static final long TIMEOUT = 3000;
+public class RetroRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrameAvailableListener {
 
-    private float[] mvp = new float[16];
+    private static final long TIMEOUT = 5000;
+
+    private float[] mvp;
     private float[] projection = new float[16];
     private float[] view = new float[16];
 
     private SurfaceTexture surfaceTexture;
     private final GlRect drawable = new GlRect();
 
-    private final SurfaceEventListener eventListener;
+    private final RetroSurfaceListener eventListener;
+    private VideoFrameCache videoCache;
     private int mWidth;
     private int mHeight;
 
-    private final Object countAvailableLock = new Object();
-    private int itemCount;
-    private int pendingIndex;
+    private final Object sizeAvailableLock = new Object();
 
     private FBOHandler fboHandler;
 
-    OSRenderer(int width, int height, SurfaceEventListener eventListener) {
+    public RetroRenderer(int width, int height, RetroSurfaceListener eventListener) {
         super();
         this.mWidth = width;
         this.mHeight = height;
@@ -44,8 +51,8 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
                 0.0f, 1.0f, 0.0f
         );
         Matrix.setIdentityM(projection, 0);
-        Matrix.multiplyMM(mvp, 0, projection, 0, view, 0);
     }
+
 
     @Override
     EglSurface createEglSurface(EglCore egl) {
@@ -67,7 +74,7 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
 
     @Override
     void drawFrame(int itemID) {
-        if (itemID < 0) return;
+
         surfaceTexture.updateTexImage();
         surfaceTexture.getTransformMatrix(fboHandler.getTextureTransform());
 
@@ -75,16 +82,24 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
         fboHandler.bind();
         fboHandler.draw(drawable, mvp);
 
-        String file = saveFrame(mWidth, mHeight, "");
-        if (!TextUtils.isEmpty(file)) {
-            eventListener.onFrameAvailable(file, itemID);
-        }
+        GLES20.glFinish();
+
+        ByteBuffer pixelBuf = ByteBuffer.allocateDirect(mWidth * mHeight * 4);
+        pixelBuf.order(ByteOrder.LITTLE_ENDIAN);
+        GLES20.glReadPixels(0, 0, mWidth, mHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuf);
+        Egloo.checkGlError("glReadPixels");
+        pixelBuf.rewind();
+
+        GlUtils.reverseBuf(pixelBuf, mWidth, mHeight);
+
+        eventListener.onTextureRetrieved(pixelBuf);
+
         fboHandler.unbind();
     }
 
-    void onVideoAspectChanged(float videoAspect) {
-        synchronized (countAvailableLock) {
-
+    public void onVideoAspectChanged(float videoAspect) {
+        synchronized (sizeAvailableLock) {
+            mvp = new float[16];
             if (videoAspect > 1) {
                 Matrix.orthoM(projection, 0, -1 / videoAspect, 1 / videoAspect, -1, 1, -1, 1);
             } else {
@@ -92,25 +107,19 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
             }
             Matrix.multiplyMM(mvp, 0, projection, 0, view, 0);
 
-            countAvailableLock.notifyAll();
+            sizeAvailableLock.notifyAll();
         }
     }
 
-    void setItemCount(int itemCount) {
-        synchronized (countAvailableLock) {
-            this.itemCount = itemCount;
-            countAvailableLock.notifyAll();
-        }
-    }
-
-    private void waitForCount() {
-        synchronized (countAvailableLock) {
-            if (itemCount == 0 || mvp == null) {
+    private void waitForDimensions() {
+        synchronized (sizeAvailableLock) {
+            if (mvp == null) {
                 try {
                     Loggy.d("Waiting for clue");
-                    countAvailableLock.wait(TIMEOUT);
-                    if (itemCount == 0 || mvp == null) {
+                    sizeAvailableLock.wait(TIMEOUT);
+                    if (mvp == null) {
                         Loggy.d("Took too long");
+                        assureMvpMatrix();
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -119,21 +128,23 @@ public class OSRenderer extends BaseGLRenderer implements SurfaceTexture.OnFrame
         }
     }
 
+    private void assureMvpMatrix() {
+        if (mvp == null) {
+            mvp = new float[16];
+            Matrix.multiplyMM(mvp, 0, projection, 0, view, 0);
+        }
+    }
+
     // called on drawing thread
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         Loggy.d("Frame available");
-        waitForCount();
-        if (pendingIndex < itemCount) {
-            requestRender(pendingIndex);
-            eventListener.drawAndMoveToNext(pendingIndex++, itemCount);
-        } else {
-            surfaceTexture.setOnFrameAvailableListener(null);
-        }
+        waitForDimensions();
+        requestRender(0);
     }
 
     public void drawSameFrame() {
-        requestRender(pendingIndex++);
+        requestRender(55);
     }
 
     @Override

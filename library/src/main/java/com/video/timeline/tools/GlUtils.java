@@ -1,4 +1,4 @@
-package com.video.timeline;
+package com.video.timeline.tools;
 
 import android.graphics.Bitmap;
 import android.os.Environment;
@@ -37,7 +37,7 @@ public class GlUtils {
         return null;
     }
 
-    private static void reverseBuf(ByteBuffer buf, int width, int height) {
+    public static void reverseBuf(ByteBuffer buf, int width, int height) {
         long ts = System.currentTimeMillis();
         int i = 0;
         byte[] tmp = new byte[width * 4];

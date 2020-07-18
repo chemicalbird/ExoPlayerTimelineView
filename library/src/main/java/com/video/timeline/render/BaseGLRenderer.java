@@ -1,4 +1,4 @@
-package com.video.timeline;
+package com.video.timeline.render;
 
 import android.opengl.GLES20;
 import android.os.Handler;
@@ -65,28 +65,6 @@ public abstract class BaseGLRenderer implements Handler.Callback {
                 break;
         }
         return false;
-    }
-
-    String saveFrame(int width, int height, String identifier) {
-        GLES20.glFinish();
-
-        ByteBuffer pixelBuf = ByteBuffer.allocateDirect(width * height * 4);
-        pixelBuf.order(ByteOrder.LITTLE_ENDIAN);
-
-        long startWhen = System.currentTimeMillis();
-
-        GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuf);
-        Egloo.checkGlError("glReadPixels");
-        pixelBuf.rewind();
-
-        try {
-            return GlUtils.savePixelBuffer(pixelBuf, width, height);
-        } catch (IOException e) {
-            Log.d("pbo_test", "Save Ex: " + e.getMessage());
-        }
-        Log.d("pbo_test", "Dur: " + (System.currentTimeMillis() - startWhen));
-
-        return null;
     }
 
     abstract EglSurface createEglSurface(EglCore egl);

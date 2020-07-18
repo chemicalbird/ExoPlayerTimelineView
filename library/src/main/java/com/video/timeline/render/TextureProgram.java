@@ -1,4 +1,4 @@
-package com.video.timeline;
+package com.video.timeline.render;
 
 import android.opengl.GLES20;
 

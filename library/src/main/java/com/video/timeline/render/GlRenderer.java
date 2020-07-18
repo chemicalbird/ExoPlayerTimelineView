@@ -1,4 +1,4 @@
-package com.video.timeline;
+package com.video.timeline.render;
 
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
@@ -10,6 +10,7 @@ import android.view.Surface;
 import com.otaliastudios.opengl.draw.GlDrawable;
 import com.otaliastudios.opengl.draw.GlRect;
 import com.otaliastudios.opengl.texture.GlTexture;
+import com.video.timeline.tools.Loggy;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -168,10 +169,17 @@ public class GlRenderer implements GLSurfaceView.Renderer, SurfaceTexture.OnFram
         waitForCount();
         if (surfaceEventListener != null) {
             if (pendingIndex < frameCount) {
-                surfaceEventListener.drawAndMoveToNext(pendingIndex, frameCount);
+                surfaceEventListener.nextFrame(pendingIndex, frameCount);
             } else {
+                surfaceEventListener.onFinish();
                 surfaceTexture.setOnFrameAvailableListener(null);
             }
         }
+    }
+
+    public interface SurfaceEventListener{
+        void onSurfaceAvailable(Surface surface);
+        void nextFrame(int offset, int limit);
+        void onFinish();
     }
 }

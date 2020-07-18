@@ -11,7 +11,23 @@
         android:layout_height="220dp"
         app:use_controller="false"/>
 
-    <com.video.timeline.TimelineGlSurfaceView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/default_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingLeft="100dp"
+        android:layout_marginTop="4dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/retro_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingLeft="100dp"
+        android:layout_marginTop="4dp"/>
+
+    <com.video.timeline.render.TimelineGlSurfaceView
         android:id="@+id/fixed_thumb_list"
         android:layout_width="match_parent"
         android:layout_height="68dp"
@@ -19,39 +35,36 @@
         android:layout_marginTop="12dp"
         android:layout_marginRight="8dp" />
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.video.timeline.ScrollableTimelineGlView
-            android:id="@+id/thumb_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="22dp" />
-
-        <View
-            android:layout_width="3dp"
-            android:layout_height="0dp"
-            android:layout_alignTop="@id/thumb_list"
-            android:layout_alignBottom="@id/thumb_list"
-            android:layout_marginLeft="160dp"
-            android:background="@android:color/white" />
-    </RelativeLayout>
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:gravity="bottom"
         android:orientation="horizontal"
-        android:paddingBottom="12dp">
+        android:paddingBottom="2dp">
+    <Button
+        android:id="@+id/show_default"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Android"/>
 
-        <Button
-            android:id="@+id/show_list"
-            style="@style/Widget.AppCompat.Button.Colored"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Show List" />
+    <Button
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:id="@+id/show_retro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Retro"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="12dp">
 
         <Button
             android:id="@+id/show_fixed"
@@ -59,6 +72,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Show Fixed" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/cache_clear"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear cache" />
 
     </LinearLayout>
 

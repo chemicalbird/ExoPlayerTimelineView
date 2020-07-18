@@ -1,4 +1,4 @@
-package com.video.timeline;
+package com.video.timeline.render;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
@@ -11,12 +11,15 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.video.VideoListener;
 import com.otaliastudios.opengl.core.EglConfigChooser;
 import com.otaliastudios.opengl.core.EglContextFactory;
+import com.video.timeline.TimelineViewFace;
+import com.video.timeline.ExoPlayerFactory;
 
-public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineViewFace, VideoListener, SurfaceEventListener {
+public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineViewFace, VideoListener, GlRenderer.SurfaceEventListener {
 
     private final Handler mainHandler;
     private GlRenderer renderer;
     private SimpleExoPlayer player;
+    private ExoPlayerFactory videoPlayerFactory;
 
     public TimelineGlSurfaceView(Context context) {
         this(context, null);
@@ -40,12 +43,6 @@ public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineView
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        renderer.release();
-    }
-
-    @Override
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
         float videoAspect = ((float) width / height) * pixelWidthHeightRatio;
         renderer.onAspectPrepared(videoAspect);
@@ -58,20 +55,19 @@ public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineView
     }
 
     @Override
-    public void setExoPlayer(SimpleExoPlayer videoComponent) {
-        this.player = videoComponent;
-        videoComponent.addVideoListener(this);
-    }
-
-    @Override
-    public void prepareSurfaceRenderer() {
+    public void startSurfaceRenderer() {
         setVisibility(VISIBLE);
         renderer.setStartRendering();
+
+        player = videoPlayerFactory.getPlayer(getContext());
+        player.prepare(videoPlayerFactory.getMediaSource(getContext()));
+        player.addVideoListener(this);
     }
 
     @Override
     public void releaseSurface() {
         renderer.release();
+        onFinish();
     }
 
     @Override
@@ -82,19 +78,27 @@ public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineView
     }
 
     @Override
-    public void drawAndMoveToNext(int offset, int limit) {
+    public void nextFrame(int offset, int limit) {
         requestRender();
         if (offset < limit) {
             long videoDuration = player.getDuration();
             long seekPos =
-                    Math.max(videoDuration / limit + offset * (videoDuration / limit), player.getContentPosition() + 1);
+                    Math.max(videoDuration / limit + offset * (videoDuration / limit), player.getCurrentPosition() + 1);
 
             player.seekTo(seekPos);
         }
     }
 
     @Override
-    public void onFrameAvailable(String filePath, int index) {
+    public void onFinish() {
+        if (player != null) {
+            player.release();
+            player = null;
+        }
+    }
 
+    @Override
+    public void attachVideoFactory(ExoPlayerFactory playerFactory) {
+        this.videoPlayerFactory = playerFactory;
     }
 }
