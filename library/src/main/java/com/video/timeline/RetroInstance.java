@@ -7,10 +7,12 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Surface;
 
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.video.VideoListener;
+import com.video.timeline.android.MRetriever;
 import com.video.timeline.render.RetroRenderer;
 import com.video.timeline.tools.FileHelper;
 import com.video.timeline.tools.Loggy;
@@ -19,6 +21,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.Executors;
 
 import static android.util.TypedValue.COMPLEX_UNIT_DIP;
 
@@ -39,6 +42,7 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
     private Handler mainHandler = new Handler();
     private long playerPosition;
     private long lastSeekPos;
+    private MRetriever mediaMetRetreiver;
 
     private RetroInstance(ExoPlayerFactory playerFactory, int size, Context context, File cacheDir) {
         this.size = size;
@@ -47,7 +51,7 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
         this.videoFrameCache = new VideoFrameCache(cacheDir, playerFactory.getMediaUri());
     }
 
-    public void load(Long presentationMs, int hash, FetchCallback callback) {
+    public void load(Long presentationMs, int hash, FetchCallback<File> callback) {
         Task previous = jobHashMap.get(hash);
         if (previous != null) {
             boolean removed1 = jobs.remove(previous);
@@ -69,6 +73,8 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
                     Log.d("retro_study", "Cache hit: " + currentJob.time);
                     currentJob.callback.onSuccess(cache);
                     next();
+                } else if (mediaMetRetreiver != null) { // fallback is activated
+                    loadUsingFallbackMethod();
                 } else {
                     checkPlayerAndSurface();
                     Log.d("retro_study", "Decode: " + currentJob.time);
@@ -107,6 +113,32 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
     }
 
     @Override
+    public void onPlayerError(ExoPlaybackException error) {
+        Loggy.d("Player err: " + (error != null ? error.getMessage() : ""));
+        // Improve: use fallback only for render type errors
+
+        if (mediaMetRetreiver == null) {
+            mediaMetRetreiver = new MRetriever(context, videoPlayerFactory.getMediaUri(), frameSize(),
+                    Executors.newFixedThreadPool(1));
+        }
+
+        loadUsingFallbackMethod();
+    }
+
+    private void loadUsingFallbackMethod() {
+        if (currentJob != null) {
+            mediaMetRetreiver.frameAt(currentJob.time, result -> {
+                File cacheWrite = videoFrameCache.fileAt(currentJob.time);
+                if (cacheWrite != null && result != null) {
+                    FileHelper.saveBitmapToFile(cacheWrite, result);
+                    result.recycle();
+                }
+                mainHandler.post(this::currentJobFinished);
+            }, currentJob.hash);
+        }
+    }
+
+    @Override
     public void onSurfaceAvailable(Surface surface) {
         mainHandler.post(() -> this.player.setVideoSurface(surface));
     }
@@ -117,13 +149,15 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
         if (cacheWrite != null) {
             FileHelper.saveToFile(cacheWrite, pixelBuffer, size, size);
         }
-        mainHandler.post(() -> {
-            if (currentJob != null) {
-                Log.d("retro_study", "Done: " + currentJob.time + " Player: " + player.getCurrentPosition());
-                currentJob.callback.onSuccess(videoFrameCache.fileAt(currentJob.time));
-            }
-            next();
-        });
+        mainHandler.post(this::currentJobFinished);
+    }
+
+    private void currentJobFinished() {
+        if (currentJob != null) {
+            Log.d("retro_study", "Done: " + currentJob.time + " Player: " + player.getCurrentPosition());
+            currentJob.callback.onSuccess(videoFrameCache.fileAt(currentJob.time));
+        }
+        next();
     }
 
     @Override
@@ -202,16 +236,12 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
     static class Task {
         final long time;
         private int hash;
-        final FetchCallback callback;
+        final FetchCallback<File> callback;
 
-        public Task(long time, int hash, FetchCallback callback) {
+        public Task(long time, int hash, FetchCallback<File> callback) {
             this.time = time;
             this.hash = hash;
             this.callback = callback;
         }
-    }
-
-    public interface FetchCallback {
-        void onSuccess(File file);
     }
 }

@@ -15,39 +15,27 @@ public class ExoPlayerFactory {
     private String mediaUri;
     private SeekParameters seekParameters;
 
-    private SimpleExoPlayer exoPlayer;
-
     public ExoPlayerFactory(String mediaUri, SeekParameters seekParameters) {
         this.mediaUri = mediaUri;
         this.seekParameters = seekParameters;
     }
 
     public SimpleExoPlayer getPlayer(Context context) {
-        if (exoPlayer == null) {
-            exoPlayer = new SimpleExoPlayer.Builder(context, new VideoRendererOnlyFactory(context))
-                    .setLoadControl(
-                            new DefaultLoadControl.Builder()
-                                    .setBufferDurationsMs(
-                                            100, 100, 100, 100)
-                                    .createDefaultLoadControl()
-                    )
-                    .build();
-            exoPlayer.setSeekParameters(seekParameters);
-        }
-
+        SimpleExoPlayer exoPlayer = new SimpleExoPlayer.Builder(context, new VideoRendererOnlyFactory(context))
+                .setLoadControl(
+                        new DefaultLoadControl.Builder()
+                                .setBufferDurationsMs(
+                                        100, 100, 100, 100)
+                                .createDefaultLoadControl()
+                )
+                .build();
+        exoPlayer.setSeekParameters(seekParameters);
         return exoPlayer;
     }
 
     public MediaSource getMediaSource(Context context) {
         return new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(context, "exo"))
                 .createMediaSource(Uri.parse(mediaUri));
-    }
-
-    public void destroyInstances() {
-        if (exoPlayer != null) {
-            exoPlayer.release();
-            exoPlayer = null;
-        }
     }
 
     public String getMediaUri() {

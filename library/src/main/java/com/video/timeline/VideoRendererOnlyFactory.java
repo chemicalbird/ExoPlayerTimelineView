@@ -38,7 +38,7 @@ public class VideoRendererOnlyFactory extends DefaultRenderersFactory {
         ArrayList<Renderer> rendererList = new ArrayList<>();
 
         buildVideoRenderers(context, EXTENSION_RENDERER_MODE_OFF,
-                MediaCodecSelector.DEFAULT, drmSessionManager, false, false,
+                MediaCodecSelector.DEFAULT, drmSessionManager, false, true,
                 eventHandler,videoRendererEventListener, 1000, rendererList);
         if (rendererList.get(0) instanceof MediaCodecVideoRenderer) {
             mediaCodecVideoRenderer = rendererList.get(0);

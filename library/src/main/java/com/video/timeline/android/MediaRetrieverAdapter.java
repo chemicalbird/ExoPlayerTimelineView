@@ -37,7 +37,7 @@ public class MediaRetrieverAdapter extends RecyclerView.Adapter<MediaRetrieverAd
 
     private Handler handler = new Handler();
 
-    private MediaMetadataRetriever mediaMetadataRetriever;
+    private MRetriever mediaMetadataRetriever;
 
     private ExecutorService threadPoolExecutor;
     private HashMap<Integer, Future> tasks = new HashMap<>();
@@ -60,6 +60,8 @@ public class MediaRetrieverAdapter extends RecyclerView.Adapter<MediaRetrieverAd
         cacheDir.mkdir();
 
         threadPoolExecutor = Executors.newFixedThreadPool(1);
+
+        mediaMetadataRetriever = new MRetriever(context, mediaUri, frameSize, Executors.newFixedThreadPool(1));
     }
 
     private int getIdentifier(int index) {
@@ -84,33 +86,15 @@ public class MediaRetrieverAdapter extends RecyclerView.Adapter<MediaRetrieverAd
         ImageView imageView = (ImageView)holder.itemView;
         File cache = FileHelper.getCachedFile(cacheDir, mediaId, getIdentifier(position));
         imageLoader.load(cache, imageView);
+
         if (!cache.exists()) {
-            if (mediaMetadataRetriever == null) {
-                mediaMetadataRetriever = new MediaMetadataRetriever();
-                mediaMetadataRetriever.setDataSource(context, Uri.parse(mediaUri));
-            }
             Future future = threadPoolExecutor.submit(() -> {
-                Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime(position * frameDuration * 1000L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
                 Loggy.d("Frame At: " + position * frameDuration);
-                try {
-                    int targetWidth;
-                    int targetHeight;
-                    if (bitmap.getHeight() > bitmap.getWidth()) {
-                        targetHeight = frameSize;
-                        float percentage = frameSize * 1F / bitmap.getHeight();
-                        targetWidth = (int) (bitmap.getWidth() * percentage);
-                    } else {
-                        targetWidth = frameSize;
-                        float percentage = frameSize * 1F / bitmap.getWidth();
-                        targetHeight = (int) (bitmap.getHeight() * percentage);
-                    }
-                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, false);
-                    bitmap.recycle();
-                    FileHelper.saveBitmapToFile(cache, scaledBitmap);
-                    scaledBitmap.recycle();
+                Bitmap frame = mediaMetadataRetriever.getScaledFrameAt(position * frameDuration * 1000L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+                if (frame != null) {
+                    FileHelper.saveBitmapToFile(cache, frame);
+                    frame.recycle();
                     handler.post(() -> notifyItemChanged(position));
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             });
             tasks.put(holder.hashCode(), future);
