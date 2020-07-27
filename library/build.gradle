@@ -6,7 +6,7 @@ publish {
     groupId = 'com.chemicalbird.android'
     artifactId = 'videotimelineview'
     uploadName = 'com.video.timeline'
-    publishVersion = '0.0.2'
+    publishVersion = '0.0.3'
     desc = 'Video timeline view (Film strip) based on ExoPlayer API'
     website = 'https://github.com/chemicalbird/ExoPlayerTimelineView'
 }

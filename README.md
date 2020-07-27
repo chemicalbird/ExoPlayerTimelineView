@@ -18,7 +18,7 @@ unnecessary. And it's running significantly faster.
 Add this to your application module, inside *dependencies* block.
 ```sh
 dependencies {
-    implementation 'com.chemicalbird.android:videotimelineview:0.0.2'
+    implementation 'com.chemicalbird.android:videotimelineview:0.0.3'
 }
 ```
 
