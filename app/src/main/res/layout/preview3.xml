@@ -11,6 +11,13 @@
         android:layout_height="220dp"
         app:use_controller="false"/>
 
+    <TextView
+        android:id="@+id/info_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="2dp"
+        />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/default_list_view"
         android:layout_width="match_parent"
@@ -58,6 +65,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Retro"/>
+
+        <CheckBox
+            android:id="@+id/soft_retro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Software"/>
     </LinearLayout>
 
     <LinearLayout

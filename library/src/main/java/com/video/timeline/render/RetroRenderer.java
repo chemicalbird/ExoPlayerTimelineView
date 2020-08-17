@@ -111,6 +111,10 @@ public class RetroRenderer extends BaseGLRenderer implements SurfaceTexture.OnFr
         }
     }
 
+    public void clearTxtMtx() {
+        mvp = null;
+    }
+
     private void waitForDimensions() {
         synchronized (sizeAvailableLock) {
             if (mvp == null) {
@@ -144,6 +148,7 @@ public class RetroRenderer extends BaseGLRenderer implements SurfaceTexture.OnFr
     }
 
     public void drawSameFrame() {
+        waitForDimensions();
         requestRender(55);
     }
 

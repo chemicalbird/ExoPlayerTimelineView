@@ -94,7 +94,7 @@ public class ThumbLoader implements PlayerMessage.Sender, Handler.Callback, Medi
 
         ComponentListener listener = new ComponentListener();
 
-        videoRenderer = new VideoRendererOnlyFactory(context).
+        videoRenderer = new VideoRendererOnlyFactory(context, false).
                 createRenderers(eventHandler, listener, null, null, listener,null)[0];
 
         rendererCapabilities = videoRenderer.getCapabilities();
@@ -122,7 +122,7 @@ public class ThumbLoader implements PlayerMessage.Sender, Handler.Callback, Medi
         insureWorker();
         if (videoRenderer == null) {
             ComponentListener listener = new ComponentListener();
-            videoRenderer = new VideoRendererOnlyFactory(context).
+            videoRenderer = new VideoRendererOnlyFactory(context, false).
                     createRenderers(eventHandler, listener, null, null, listener,null)[0];
 
             rendererCapabilities = videoRenderer.getCapabilities();

@@ -33,30 +33,17 @@ public class VideoTimeLine {
     }
 
     public static class Builder {
-        private static final int DEFAULT_SIZE = 80;
-
         private final String mediaURI;
-        private int size;
-
-        private int dpToPx(float dpValue, Context context) {
-            DisplayMetrics dm = context.getResources().getDisplayMetrics();
-            return (int) TypedValue.applyDimension(COMPLEX_UNIT_DIP, dpValue, dm);
-        }
 
         Builder(String mediaURI) {
             this.mediaURI = mediaURI;
-            this.size = DEFAULT_SIZE;
-        }
-
-        public Builder setFrameSizeDp(int size) {
-            this.size = size;
-            return this;
         }
 
         public VideoTimeLine into(TimelineViewFace fixedView) {
             VideoTimeLine timeline = new VideoTimeLine();
             timeline.timelineView = fixedView;
-            timeline.timelineView.attachVideoFactory(new ExoPlayerFactory(mediaURI, SeekParameters.NEXT_SYNC));
+            timeline.timelineView.setMediaUri(mediaURI);
+            timeline.timelineView.attachVideoFactory(new ExoPlayerFactory(SeekParameters.NEXT_SYNC));
             return timeline;
         }
 

@@ -8,19 +8,21 @@ import java.io.File;
 
 public class VideoFrameCache {
 
-    private final String mediaId;
     private File cacheDir;
 
-    VideoFrameCache(File cacheDir, String videoUri) {
-        this.mediaId = videoUri.substring(videoUri.lastIndexOf('/') + 1);
+    VideoFrameCache(File cacheDir) {
         this.cacheDir = cacheDir;
         if (cacheDir != null) {
-            this.cacheDir.mkdir();
+            cacheDir.mkdir();
         }
     }
 
+    private String mediaId(String media) {
+        return media.substring(media.lastIndexOf('/') + 1);
+    }
+
     @Nullable
-    File fileAt(long timeMs) {
-        return cacheDir != null ? FileHelper.getCachedFile(cacheDir, mediaId, timeMs) : null;
+    File fileAt(String video, long timeMs) {
+        return cacheDir != null ? FileHelper.getCachedFile(cacheDir, mediaId(video), timeMs) : null;
     }
 }

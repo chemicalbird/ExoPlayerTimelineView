@@ -7,6 +7,28 @@
     tools:context=".MainActivity"
     android:orientation="vertical">
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/multiple_vids"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Multiple Choice"/>
+
+        <Button
+            android:id="@+id/multiple_sel_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:minHeight="40dp"
+            android:visibility="gone"
+            android:text="Open"/>
+    </FrameLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/video_list"
         android:layout_marginTop="12dp"

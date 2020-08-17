@@ -61,7 +61,8 @@ public class MediaRetrieverAdapter extends RecyclerView.Adapter<MediaRetrieverAd
 
         threadPoolExecutor = Executors.newFixedThreadPool(1);
 
-        mediaMetadataRetriever = new MRetriever(context, mediaUri, frameSize, Executors.newFixedThreadPool(1));
+        mediaMetadataRetriever = new MRetriever(context, frameSize, Executors.newFixedThreadPool(1));
+        mediaMetadataRetriever.setSource(mediaUri);
     }
 
     private int getIdentifier(int index) {

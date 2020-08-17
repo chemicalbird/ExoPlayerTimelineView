@@ -1,6 +1,7 @@
 package com.example.timlineview;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -15,23 +16,61 @@ import com.video.timeline.VideoMetadata;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VideoFrameAdapter extends RecyclerView.Adapter<VideoFrameAdapter.Holder> {
-    private List<VideoMetadata> mets;
+public class VideoFrameAdapter2 extends RecyclerView.Adapter<VideoFrameAdapter2.Holder> {
     private final ImageLoader imageLoader;
+    private List<String> medias;
+    private List<VideoMetadata> infos;
     private final long frameDuration;
     private Context context;
     int count;
 
     private RetroInstance retroInstance;
 
-    public VideoFrameAdapter(RetroInstance retroInstance, int frameDuration, long videoDuration, List<VideoMetadata> mets, ImageLoader imageLoader) {
+    public VideoFrameAdapter2(RetroInstance retroInstance,
+                             int frameDuration,
+                             ImageLoader imageLoader,
+                             List<String> medias,
+                             List<VideoMetadata> infos) {
         this.frameDuration = frameDuration;
-        this.mets = mets;
         this.imageLoader = imageLoader;
-        count = (int) (videoDuration / frameDuration);
+        this.medias = medias;
+        this.infos = infos;
+
+        long duration = 0;
+        for (VideoMetadata info: infos) {
+            Log.d("2_study", info.getDurationMs() + "");
+            duration += info.getDurationMs();
+        }
+
+        count = (int) (duration / frameDuration);
 
         this.retroInstance = retroInstance;
     }
+
+    private String getMediaForPosition(int position) {
+        int len = 0;
+        for (VideoMetadata info: infos) {
+            len += (int) (info.getDurationMs() / frameDuration);
+            if (position <= len) {
+                return medias.get(infos.indexOf(info));
+            }
+        }
+
+        return medias.get(medias.size() - 1);
+    }
+
+    private int offset(String media) {
+        int total = 0;
+        for (String item: medias) {
+            if (item == media) {
+                return total;
+            }
+            total += infos.get(medias.indexOf(item)).getDurationMs() / frameDuration;
+        }
+
+        return total;
+    }
+
     @NonNull
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -41,23 +80,14 @@ public class VideoFrameAdapter extends RecyclerView.Adapter<VideoFrameAdapter.Ho
         return new Holder(imageView);
     }
 
-    private long getWindowPosition(long outPosition) {
-        long len = 0;
-        for (VideoMetadata metadata: mets) {
-            if (outPosition <= metadata.getDurationMs() + len) {
-                return outPosition - len;
-            }
-            len += metadata.getDurationMs();
-        }
-
-        return len;
-    }
-
     @Override
     public void onBindViewHolder(@NonNull Holder holder, int position) {
         ImageView imageView = (ImageView)holder.itemView;
         imageView.setImageBitmap(null);
-        retroInstance.load(hashCode() + "",getWindowPosition(position * frameDuration), holder.hashCode(),
+        String video = getMediaForPosition(position);
+        retroInstance.load(video,
+                (position - offset(video)) * frameDuration,
+                holder.hashCode(),
                 file -> imageLoader.load(file, imageView));
     }
 

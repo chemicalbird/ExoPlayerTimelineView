@@ -20,6 +20,7 @@ public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineView
     private GlRenderer renderer;
     private SimpleExoPlayer player;
     private ExoPlayerFactory videoPlayerFactory;
+    private String mediaUri;
 
     public TimelineGlSurfaceView(Context context) {
         this(context, null);
@@ -60,7 +61,7 @@ public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineView
         renderer.setStartRendering();
 
         player = videoPlayerFactory.getPlayer(getContext());
-        player.prepare(videoPlayerFactory.getMediaSource(getContext()));
+        player.prepare(videoPlayerFactory.getMediaSource(mediaUri, getContext()));
         player.addVideoListener(this);
     }
 
@@ -100,5 +101,10 @@ public class TimelineGlSurfaceView extends GLSurfaceView implements TimelineView
     @Override
     public void attachVideoFactory(ExoPlayerFactory playerFactory) {
         this.videoPlayerFactory = playerFactory;
+    }
+
+    @Override
+    public void setMediaUri(String mediaUri) {
+        this.mediaUri = mediaUri;
     }
 }

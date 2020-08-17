@@ -7,4 +7,5 @@ public interface TimelineViewFace {
     void releaseSurface();
     Context context();
     void attachVideoFactory(ExoPlayerFactory playerFactory);
+    void setMediaUri(String mediaUri);
 }
