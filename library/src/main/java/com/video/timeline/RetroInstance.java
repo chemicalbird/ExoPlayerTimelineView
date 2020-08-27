@@ -3,9 +3,7 @@ package com.video.timeline;
 import android.content.Context;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Surface;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -25,8 +23,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.Executors;
-
-import static android.util.TypedValue.COMPLEX_UNIT_DIP;
 
 public class RetroInstance implements RetroSurfaceListener, VideoListener, Player.EventListener {
 
@@ -59,6 +55,10 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
         this.videoFrameCache = new VideoFrameCache(cacheDir);
     }
 
+    public File getCacheDir() {
+        return videoFrameCache.getCacheDir();
+    }
+
     public void setPlayerInstance(SimpleExoPlayer player) {
         this.player = player;
     }
@@ -73,8 +73,8 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
     public void load(String mediaUri, Long presentationMs, int hash, FetchCallback<File> callback) {
         Task previous = jobHashMap.get(hash);
         if (previous != null) {
-            boolean removed1 = jobs.remove(previous);
-            Log.d("hash_study", "Rem1: " + removed1);
+            jobs.remove(previous);
+            jobHashMap.remove(hash);
         }
 
         Task job = new Task(mediaUri, presentationMs, hash, callback);
@@ -103,6 +103,7 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
                 if (cache != null) {
                     Log.d("retro_study", "Cache hit: " + currentJob.time);
                     currentJob.callback.onSuccess(cache);
+                    jobHashMap.remove(currentJob.hash);
                     next();
                 } else if (mediaMetRetreiver != null) { // fallback is activated
                     loadUsingFallbackMethod();
@@ -122,7 +123,6 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
     }
 
     private void next() {
-        jobHashMap.remove(currentJob.hash);
         currentJob = null;
         execute();
     }
@@ -132,12 +132,10 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
             prepareVideoPlayer();
         }
         if (explicitMediaSource != null) {
-            if (currentPreparedSource == null) {
+            if (isIdle()) {
                 player.prepare(explicitMediaSource);
-                currentPreparedSource = currentJob.mediaUri;
             }
-        } else if (currentPreparedSource == null || !currentPreparedSource.equals(currentJob.mediaUri)) {
-            Loggy.d("Prepare:" + currentJob.time);
+        } else if (!currentJob.mediaUri.equals(currentPreparedSource) || isIdle()) {
             player.prepare(videoPlayerFactory.getMediaSource(currentJob.mediaUri, context));
             currentPreparedSource = currentJob.mediaUri;
             if (offscreenSurface != null) {
@@ -155,9 +153,20 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
         player.addListener(this);
     }
 
+    private boolean isIdle() {
+        return player.getPlaybackState() == Player.STATE_IDLE;
+    }
+
+    public void stop(boolean reset) {
+        if (player != null) {
+            player.stop(reset);
+        }
+    }
+
     @Override
     public void onPlayerError(ExoPlaybackException error) {
         Loggy.d("Player err: " + (error != null ? error.getMessage() : ""));
+        stop(true);
         if (error != null && error.type == ExoPlaybackException.TYPE_SOURCE) {
             currentJobFinished();
             return;
@@ -210,6 +219,7 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
     private void currentJobFinished() {
         if (currentJob != null) {
             currentJob.callback.onSuccess(videoFrameCache.fileAt(currentJob.mediaUri, currentJob.time));
+            jobHashMap.remove(currentJob.hash);
         }
         next();
     }
@@ -231,7 +241,12 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
     }
 
     public void onDestroy() {
+        jobs.clear();
+        jobHashMap.clear();
+        currentJob = null;
         if (player != null) {
+            player.removeListener(this);
+            player.removeVideoListener(this);
             player.release();
             player = null;
         }
@@ -239,6 +254,11 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
         if (offscreenSurface != null) {
             offscreenSurface.release();
             offscreenSurface = null;
+        }
+
+        if (mediaMetRetreiver != null) {
+            mediaMetRetreiver.release();
+            mediaMetRetreiver = null;
         }
     }
 
@@ -268,8 +288,8 @@ public class RetroInstance implements RetroSurfaceListener, VideoListener, Playe
             return this;
         }
 
-        public Builder decoder(boolean software) {
-            this.preferSoftwareDecoder = software;
+        public Builder softwareDecoder(boolean flag) {
+            this.preferSoftwareDecoder = flag;
             return this;
         }
 

@@ -17,6 +17,10 @@ public class VideoFrameCache {
         }
     }
 
+    public File getCacheDir() {
+        return cacheDir;
+    }
+
     private String mediaId(String media) {
         return media.substring(media.lastIndexOf('/') + 1);
     }

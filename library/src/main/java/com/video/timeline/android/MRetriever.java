@@ -78,4 +78,8 @@ public class MRetriever {
         return bitmap;
     }
 
+    public void release() {
+        mediaMetadataRetriever.release();
+    }
+
 }

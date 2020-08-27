@@ -18,7 +18,7 @@ unnecessary. And it's running significantly faster.
 Add this to your application module, inside *dependencies* block.
 ```sh
 dependencies {
-    implementation 'com.chemicalbird.android:videotimelineview:0.0.4-beta'
+    implementation 'com.chemicalbird.android:videotimelineview:0.0.4'
 }
 ```
 
@@ -41,8 +41,8 @@ VideoTimeLine.with(fileUri).show(glSurfaceView);
 
 2. To create a frame grabber MediaRetriever implementation use
    `RetroInstance`, for example pass it to your RecyclerView.Adapter. To
-   get a frame at specific time call
-   `retroInstance.load(presentationTime, callback)`. Checkout Sample
+   get a frame at specific time call 
+   `retroInstance.load(presentationTime, callback)`. Checkout Sample 
    project for more details.
 
 ```sh

@@ -5,7 +5,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.text.TextUtils;
 import android.view.View;
 import android.webkit.URLUtil;
 import android.widget.CheckBox;
@@ -38,7 +37,6 @@ import com.video.timeline.tools.MediaHelper;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class NewActivity extends AppCompatActivity implements View.OnClickListener {
@@ -195,7 +193,7 @@ public class NewActivity extends AppCompatActivity implements View.OnClickListen
         }
 
         retroInstance = new RetroInstance.Builder(this)
-                .decoder(softRetroCheckbox.isChecked())
+                .softwareDecoder(softRetroCheckbox.isChecked())
                 .setFrameSizeDp(180)
                 .create();
 

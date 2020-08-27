@@ -13,7 +13,6 @@ import com.video.timeline.ImageLoader;
 import com.video.timeline.RetroInstance;
 import com.video.timeline.VideoMetadata;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class VideoFrameAdapter2 extends RecyclerView.Adapter<VideoFrameAdapter2.Holder> {
@@ -27,10 +26,10 @@ public class VideoFrameAdapter2 extends RecyclerView.Adapter<VideoFrameAdapter2.
     private RetroInstance retroInstance;
 
     public VideoFrameAdapter2(RetroInstance retroInstance,
-                             int frameDuration,
-                             ImageLoader imageLoader,
-                             List<String> medias,
-                             List<VideoMetadata> infos) {
+                              int frameDuration,
+                              ImageLoader imageLoader,
+                              List<String> medias,
+                              List<VideoMetadata> infos) {
         this.frameDuration = frameDuration;
         this.imageLoader = imageLoader;
         this.medias = medias;

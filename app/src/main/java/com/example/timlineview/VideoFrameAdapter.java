@@ -12,7 +12,6 @@ import com.video.timeline.ImageLoader;
 import com.video.timeline.RetroInstance;
 import com.video.timeline.VideoMetadata;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class VideoFrameAdapter extends RecyclerView.Adapter<VideoFrameAdapter.Holder> {
